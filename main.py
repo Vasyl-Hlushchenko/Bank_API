@@ -10,7 +10,7 @@ app = FastAPI()
 
 @app.get("/api/healthchecker")
 def root():
-    return {"message": "Welcome to FastAPI!"}
+    return {"message": "Welcome to Bank_API!"}
 
 
 @app.get("/user_credits/{user_id}", status_code=status.HTTP_200_OK)
