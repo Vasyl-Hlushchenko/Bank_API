@@ -1,7 +1,5 @@
-from sqlalchemy import Column, Integer, String, func, Float, Text
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer,  Float, Text
 from sqlalchemy.sql.schema import ForeignKey
-from sqlalchemy.sql.sqltypes import Date
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -30,9 +28,6 @@ class Payment(Base):
     credit_id = Column(Integer, ForeignKey('credits.id', ondelete='CASCADE'))
     type_id = Column(Integer, ForeignKey('dictionary.id', ondelete='CASCADE'))
 
-    # credit = relationship('Credit', backref="payments")
-    # dictionary = relationship('Dictionary', backref="payments")
-
 
 class Credit(Base):
     __tablename__ = 'credits'
@@ -44,8 +39,6 @@ class Credit(Base):
     actual_return_date = Column(Text)
     body = Column(Float)
     percent = Column(Float)
-
-    # user = relationship('User', backref="credits")
 
 
 class Plan(Base):
