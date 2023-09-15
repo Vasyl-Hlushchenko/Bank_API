@@ -119,7 +119,7 @@ async def check_yr_plans(year_on: str, db: Session) -> List[Plan] | None:
 
     plans_list = []
     for mnth in range(1, 13):
-        date_start = datetime.strptime(f"01.{mnth}.{year_on}", '%d.%m.%Y').date()
+        date_start = datetime.strptime(f"01.{mnth:02}.{year_on}", '%d.%m.%Y').date()
         date_fin = datetime.strptime(fin_dates[mnth-1], '%d.%m.%Y').date()
         day_list = [day.strftime('%d.%m.%Y') for day in pd.date_range(date_start, date_fin)]
 
