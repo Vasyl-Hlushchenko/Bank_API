@@ -22,6 +22,7 @@ class Dictionary(Base):
 
 class Payment(Base):
     __tablename__ = "payments"
+    
     id = Column(Integer, primary_key=True)
     sum = Column(Float)
     payment_date = Column(Text)

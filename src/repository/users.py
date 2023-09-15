@@ -77,7 +77,7 @@ async def load_plans(file: UploadFile, db: Session) -> Plan | None:
     return "Plans successfully added to DB"
 
 
-def sum_by_category(date_on, category_name, db):
+def sum_category(date_on, category_name, db):
     date_fin = datetime.strptime(date_on, '%d.%m.%Y').date()
     date_start = datetime.strptime(f"01{date_on[2:]}", '%d.%m.%Y').date()
     date_list = [d.strftime('%d.%m.%Y') for d in pd.date_range(date_start, date_fin)]
@@ -94,12 +94,13 @@ async def check_mn_plans(date_on: str, db: Session) -> List[Plan] | None:
     plans_list = []
     for plan in mn_plans:
         category = db.query(Dictionary).filter(Dictionary.id == plan.category_id).first()
+        sum_by_category = sum_category(date_on, category.name, db)
         category_plan = MonthResponse(
             period=plan.period, #Місяць плану
             category=category.name, #Категорія плану
             sum=plan.sum, #Сума з плану
-            sum_by_category=sum_by_category(date_on, category.name, db), #Сума виданих кредитів або сума платежів
-            perc_plan_impl=sum_by_category(date_on, category.name, db)*100/(plan.sum+0.001) #% виконання плану
+            sum_by_category=sum_by_category, #Сума виданих кредитів або сума платежів
+            perc_plan_impl=sum_by_category*100/(plan.sum+0.001) #% виконання плану
         )
         plans_list.append(category_plan)
 
@@ -107,14 +108,11 @@ async def check_mn_plans(date_on: str, db: Session) -> List[Plan] | None:
     return plans_list
 
 
-# check_yr_plans
 async def check_yr_plans(year_on: str, db: Session) -> List[Plan] | None:
-    # yr_plans = db.query(Plan).filter(Plan.period.like(f'%{year_on}')).all()
     all_yr_credits = db.query(Credit).filter(Credit.issuance_date.like(f'%{year_on}')).all()
     all_yr_payments = db.query(Payment).filter(Payment.payment_date.like(f'%{year_on}')).all()
     sum_credits_year= sum([credit.body for credit in all_yr_credits])
     sum_payments_year = sum([payment.sum for payment in all_yr_payments])
-
 
     start_date = f'01.01.{year_on}'
     fin_dates = [d.strftime('%d.%m.%Y') for d in pd.date_range(start=start_date, periods=12, freq='M')]

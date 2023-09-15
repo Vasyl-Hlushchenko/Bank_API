@@ -1,7 +1,6 @@
-from datetime import date, datetime, timedelta
-from typing import List, Optional
+from typing import Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel
 
 
 class ClosedCreditModel(BaseModel):
