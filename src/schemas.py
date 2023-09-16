@@ -3,7 +3,7 @@ from datetime import date
 from pydantic import BaseModel
 
 
-class ClosedCreditModel(BaseModel):
+class ClosedCreditResponse(BaseModel):
     issuance_date: date
     exist_credit: bool
     return_date: date
@@ -11,7 +11,8 @@ class ClosedCreditModel(BaseModel):
     percent: float
     sum: float
 
-class OpenCreditModel(BaseModel):
+
+class OpenCreditResponse(BaseModel):
     issuance_date: date
     exist_credit: bool
     return_date: date
@@ -21,12 +22,14 @@ class OpenCreditModel(BaseModel):
     body_payments: float
     percent_payments: float
 
+
 class MonthResponse(BaseModel):
     period: date
     category: str
     sum: int
     sum_by_category: float
     perc_plan_impl: float
+
 
 class YearResponse(BaseModel):
     month_year: str

@@ -9,7 +9,7 @@ from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
 from src.database.models import Credit, Payment, User, Plan, Diction
-from src.schemas import ClosedCreditModel, OpenCreditModel, MonthResponse, YearResponse
+from src.schemas import ClosedCreditResponse, OpenCreditResponse, MonthResponse, YearResponse
 
 
 async def user_cr_info(user_id: int, db: Session) -> List[User] | None:
@@ -31,7 +31,7 @@ async def user_cr_info(user_id: int, db: Session) -> List[User] | None:
             sum_payments = (
                 db.query(Payment).filter(Payment.credit_id == credit.id).all()
             )
-            user_info = ClosedCreditModel(
+            user_info = ClosedCreditResponse(
                 issuance_date=credit.issuance_date,  # Дата видачі кредиту
                 exist_credit=True,  # Булеве значення чи кредит закритий (true - закритий, false - відкритий)
                 return_date=credit.actual_return_date,  # Дата повернення кредиту
@@ -54,7 +54,7 @@ async def user_cr_info(user_id: int, db: Session) -> List[User] | None:
                 .filter(and_(Payment.credit_id == credit.id, Payment.type_id == 2))
                 .all()
             )
-            user_info = OpenCreditModel(
+            user_info = OpenCreditResponse(
                 issuance_date=credit.issuance_date,  # Дата видачі кредиту
                 exist_credit=False,  # Булеве значення чи кредит закритий (true - закритий, false - відкритий)
                 return_date=credit.return_date,  # Крайня дата повернення кредиту
