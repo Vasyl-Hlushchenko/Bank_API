@@ -112,16 +112,16 @@ async def load_plans(file: UploadFile, db: Session) -> Plan | None:
 
         if exist_plan:
             message.append(
-                f"Plan with period: {period} and category_name: '{df['category_name'][ind]}'. Already exist"
+                f"Plan with period: {period} and category_name: '{df['category_name'][ind]}' already exist"
             )
         if period != period.replace(day=1):
-            message.append(f"Plan period: {period}. Not start with first day of month")
+            message.append(f"Plan period: {period} don't starts with first day of month")
         if df["sum"][ind] == 0:
-            message.append(f"Plan with period: {period}. Sum is missed")
+            message.append(f"Plan with period: {period} missed Sum ")
         continue
 
     if message:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"{message}")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"{'. '.join(message)}")
 
     return add_to_db(df, db)
 
