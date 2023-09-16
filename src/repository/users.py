@@ -121,7 +121,7 @@ async def load_plans(file: UploadFile, db: Session) -> Plan | None:
         continue
 
     if message:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"{message}")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"{message}")
 
     return add_to_db(df, db)
 

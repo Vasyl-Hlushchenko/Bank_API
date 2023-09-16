@@ -36,7 +36,7 @@ async def user_credits_info(user_id: int, db: Session = Depends(get_db)):
 async def download_plans(file: UploadFile = File(None), db: Session = Depends(get_db)):
     if not file.filename.lower().endswith((".xlsx", ".xls")):
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Upload xlsx or xls file"
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Upload xlsx or xls file"
         )
 
     return await load_plans(file, db)
