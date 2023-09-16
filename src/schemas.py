@@ -1,42 +1,42 @@
-from typing import Optional
+from datetime import date
 
 from pydantic import BaseModel
 
 
 class ClosedCreditModel(BaseModel):
-    issuance_date: Optional[str]
-    exist_credit: Optional[bool]
-    return_date: Optional[str]
-    body: Optional[float]
-    percent: Optional[float]
-    sum: Optional[float]
+    issuance_date: date
+    exist_credit: bool
+    return_date: date
+    body: float
+    percent: float
+    sum: float
 
 class OpenCreditModel(BaseModel):
-    issuance_date: Optional[str]
-    exist_credit: Optional[bool]
-    return_date: Optional[str]
-    overdue_days: Optional[int]
-    body: Optional[float]
-    percent: Optional[float]
-    body_payments: Optional[float]
-    percent_payments: Optional[float]
+    issuance_date: date
+    exist_credit: bool
+    return_date: date
+    overdue_days: int
+    body: float
+    percent: float
+    body_payments: float
+    percent_payments: float
 
 class MonthResponse(BaseModel):
-    period: Optional[str]
-    category: Optional[str]
-    sum: Optional[int]
-    sum_by_category: Optional[int | float]
-    perc_plan_impl: Optional[int | float]
+    period: date
+    category: str
+    sum: int
+    sum_by_category: float
+    perc_plan_impl: float
 
 class YearResponse(BaseModel):
-    month_year: Optional[str]
-    number_credits: Optional[int]
-    sum_by_plan_credits: Optional[int | float]
-    sum_credits_month: Optional[int | float]
-    perc_credits: Optional[int | float]
-    number_payments: Optional[int]
-    sum_by_plan_payments: Optional[int | float]
-    sum_payments_month: Optional[int | float]
-    perc_payments: Optional[int | float]
-    perc_cred_month_year: Optional[int | float]
-    perc_pay_month_year: Optional[int | float]
+    month_year: str
+    number_credits: int
+    sum_by_plan_credits: float
+    sum_credits_month: float
+    perc_credits: float
+    number_payments: int
+    sum_by_plan_payments: float
+    sum_payments_month: float
+    perc_payments: float
+    perc_cred_month_year: float
+    perc_pay_month_year: float
