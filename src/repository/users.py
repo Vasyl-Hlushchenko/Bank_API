@@ -3,9 +3,9 @@ import pandas as pd
 from io import BytesIO
 from fastapi import HTTPException, UploadFile, status
 from typing import List
-from datetime import date, datetime
+from datetime import date
 
-from sqlalchemy import and_
+from sqlalchemy import and_, extract
 from sqlalchemy.orm import Session
 
 from src.database.models import Credit, Payment, User, Plan, Diction
@@ -18,7 +18,6 @@ from src.schemas import (
 
 
 async def user_cr_info(user_id: int, db: Session) -> List[User] | None:
-
     no_credits = (
         db.query(Credit)
         .filter(and_(Credit.user_id == user_id, Credit.actual_return_date != None))
@@ -149,6 +148,7 @@ def sum_category(date_on, category_name, db) -> float:
 
 
 def percent(numerator, denominator) -> float:
+
     return numerator * 100 / (denominator + 0.0001)
 
 
@@ -175,73 +175,49 @@ async def check_mn_plans(date_on: date, db: Session) -> List[Plan] | None:
 
 
 async def check_yr_plans(year_on: str, db: Session) -> List[Plan] | None:
-    date_yr_start = datetime.strptime(f"{year_on}-01-01", "%Y-%m-%d").date()
-    date_yr_fin = datetime.strptime(f"{year_on}-12-31", "%Y-%m-%d").date()
+    all_yr_credits = db.query(Credit).filter(
+        extract("year", Credit.issuance_date) == year_on
+    )
 
-    all_yr_credits = (
-        db.query(Credit)
-        .filter(Credit.issuance_date.between(date_yr_start, date_yr_fin))
-        .all()
+    all_yr_payments = db.query(Payment).filter(
+        extract("year", Payment.payment_date) == year_on
     )
-    all_yr_payments = (
-        db.query(Payment)
-        .filter(Payment.payment_date.between(date_yr_start, date_yr_fin))
-        .all()
-    )
+
+    all_yr_plans = db.query(Plan).filter(extract("year", Plan.period) == year_on)
+
     sum_credits_year = sum([credit.body for credit in all_yr_credits])
     sum_payments_year = sum([payment.sum for payment in all_yr_payments])
 
-    fin_dates = [
-        day for day in pd.date_range(start=date_yr_start, periods=12, freq="M")
-    ]
-
     plans_list = []
-    for mnth in range(1, 13):
-        date_m_start = fin_dates[mnth - 1].replace(day=1)
-        date_m_fin = fin_dates[mnth - 1]
+    for mnth in range(1, 12):
 
-        yr_plans_credits = (
-            db.query(Plan)
-            .filter(
-                and_(Plan.period.between(date_m_start, date_m_fin)),
-                Plan.category_id == 3,
-            )
-            .all()
-        )
-        yr_plans_payments = (
-            db.query(Plan)
-            .filter(
-                and_(
-                    Plan.period.between(date_m_start, date_m_fin), Plan.category_id == 4
-                )
-            )
-            .all()
-        )
-        yr_credits = (
-            db.query(Credit)
-            .filter(Credit.issuance_date.between(date_m_start, date_m_fin))
-            .all()
-        )
-        yr_payments = (
-            db.query(Payment)
-            .filter(Payment.payment_date.between(date_m_start, date_m_fin))
-            .all()
-        )
+        mn_plans_credits = all_yr_plans.filter(
+            and_(extract("month", Plan.period) == mnth, Plan.category_id == 3)
+        ).all()
+        mn_credits = all_yr_credits.filter(
+            extract("month", Credit.issuance_date) == mnth
+        ).all()
+        mn_plans_payments = all_yr_plans.filter(
+            and_(extract("month", Plan.period) == mnth, Plan.category_id == 4)
+        ).all()
+        mn_payments = all_yr_payments.filter(
+            extract("month", Payment.payment_date) == mnth
+        ).all()
 
-        sum_by_plan_credits = sum([plan.sum for plan in yr_plans_credits])
-        sum_credits_month = sum([credit.body for credit in yr_credits])
-        sum_by_plan_payments = sum([plan.sum for plan in yr_plans_payments])
-        sum_payments_month = sum([payment.sum for payment in yr_payments])
+        sum_by_plan_credits = sum([plan.sum for plan in mn_plans_credits])
+        sum_credits_month = sum([credit.body for credit in mn_credits])
+        sum_by_plan_payments = sum([plan.sum for plan in mn_plans_payments])
+        sum_payments_month = sum([payment.sum for payment in mn_payments])
 
         year_plan = YearResponse(
             month_year=f"{mnth:02}.{year_on}",  # Місяць та рік
-            number_credits=len(yr_credits),  # Кількість видач за місяць
+            number_credits=len(mn_credits),  # Кількість видач за місяць
             sum_by_plan_credits=sum_by_plan_credits,  # Сума з плану по видачам на місяць
             sum_credits_month=sum_credits_month,  # Сума видач за місяць
             perc_credits=percent(
                 sum_credits_month, sum_by_plan_credits
             ),  #% виконання плану по видачам
-            number_payments=len(yr_payments),  # Кількість платежів за місяць
+            number_payments=len(mn_payments),  # Кількість платежів за місяць
             sum_by_plan_payments=sum_by_plan_payments,  # Сума з плану по збору за місяць
             sum_payments_month=sum_payments_month,  # Сума платежів за місяць
             perc_payments=percent(
