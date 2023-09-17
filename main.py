@@ -32,7 +32,7 @@ async def user_credits_info(user_id: int, db: Session = Depends(get_db)):
     return res
 
 
-@app.post("/plans_insert", status_code=status.HTTP_200_OK)
+@app.post("/plans_insert", status_code=status.HTTP_201_CREATED)
 async def download_plans(file: UploadFile = File(None), db: Session = Depends(get_db)):
     if not file.filename.lower().endswith((".xlsx", ".xls")):
         raise HTTPException(
