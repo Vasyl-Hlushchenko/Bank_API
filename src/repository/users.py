@@ -9,7 +9,12 @@ from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
 from src.database.models import Credit, Payment, User, Plan, Diction
-from src.schemas import ClosedCreditResponse, OpenCreditResponse, MonthResponse, YearResponse
+from src.schemas import (
+    ClosedCreditResponse,
+    OpenCreditResponse,
+    MonthResponse,
+    YearResponse,
+)
 
 
 async def user_cr_info(user_id: int, db: Session) -> List[User] | None:
@@ -78,7 +83,7 @@ async def user_cr_info(user_id: int, db: Session) -> List[User] | None:
     return all_info
 
 
-def add_to_db(df, db):
+def add_to_db(df, db) -> str:
     for ind in df.index:
         diction = (
             db.query(Diction).filter(Diction.name == df["category_name"][ind]).first()
@@ -115,18 +120,22 @@ async def load_plans(file: UploadFile, db: Session) -> Plan | None:
                 f"Plan with period: {period} and category_name: '{df['category_name'][ind]}' already exist"
             )
         if period != period.replace(day=1):
-            message.append(f"Plan period: {period} don't starts with first day of month")
+            message.append(
+                f"Plan period: {period} don't starts with first day of month"
+            )
         if df["sum"][ind] == 0:
             message.append(f"Plan with period: {period} missed Sum ")
         continue
 
     if message:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"{'. '.join(message)}")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=f"{'. '.join(message)}"
+        )
 
     return add_to_db(df, db)
 
 
-def sum_category(date_on, category_name, db):
+def sum_category(date_on, category_name, db) -> float:
     date_start = date_on.replace(day=1)
     date_list = [day for day in pd.date_range(date_start, date_on)]
     mn_credits = db.query(Credit).filter(Credit.issuance_date.in_(date_list)).all()
@@ -137,6 +146,10 @@ def sum_category(date_on, category_name, db):
     if category_name == "збір":
 
         return sum([payment.sum for payment in mn_payments])
+
+
+def percent(numerator, denominator) -> float:
+    return numerator * 100 / (denominator + 0.0001)
 
 
 async def check_mn_plans(date_on: date, db: Session) -> List[Plan] | None:
@@ -154,9 +167,7 @@ async def check_mn_plans(date_on: date, db: Session) -> List[Plan] | None:
             category=category.name,  # Категорія плану
             sum=plan.sum,  # Сума з плану
             sum_by_category=sum_by_category,  # Сума виданих кредитів або сума платежів
-            perc_plan_impl=sum_by_category
-            * 100
-            / (plan.sum + 0.001),  #% виконання плану
+            perc_plan_impl=percent(sum_by_category, plan.sum),  #% виконання плану
         )
         plans_list.append(category_plan)
 
@@ -227,22 +238,20 @@ async def check_yr_plans(year_on: str, db: Session) -> List[Plan] | None:
             number_credits=len(yr_credits),  # Кількість видач за місяць
             sum_by_plan_credits=sum_by_plan_credits,  # Сума з плану по видачам на місяць
             sum_credits_month=sum_credits_month,  # Сума видач за місяць
-            perc_credits=sum_credits_month
-            * 100
-            / (sum_by_plan_credits + 0.001),  #% виконання плану по видачам
+            perc_credits=percent(
+                sum_credits_month, sum_by_plan_credits
+            ),  #% виконання плану по видачам
             number_payments=len(yr_payments),  # Кількість платежів за місяць
             sum_by_plan_payments=sum_by_plan_payments,  # Сума з плану по збору за місяць
             sum_payments_month=sum_payments_month,  # Сума платежів за місяць
-            perc_payments=sum_payments_month
-            * 100
-            / (sum_by_plan_payments + 0.001),  #% виконання плану по збору
-            perc_cred_month_year=sum_credits_month
-            * 100
-            / (sum_credits_year + 0.001),  #% суми видач за місяць від суми видач за рік
-            perc_pay_month_year=sum_payments_month
-            * 100
-            / (
-                sum_payments_year + 0.001
+            perc_payments=percent(
+                sum_payments_month, sum_by_plan_payments
+            ),  #% виконання плану по збору
+            perc_cred_month_year=percent(
+                sum_credits_month, sum_credits_year
+            ),  #% суми видач за місяць від суми видач за рік
+            perc_pay_month_year=percent(
+                sum_payments_month, sum_payments_year
             ),  #% суми платежів за місяць від суми платежів за рік
         )
         plans_list.append(year_plan)
