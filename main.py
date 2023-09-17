@@ -2,7 +2,6 @@ from datetime import date
 from fastapi import FastAPI, Depends, File, HTTPException, UploadFile, status, Query
 from sqlalchemy.orm import Session
 
-
 from src.repository.users import (
     user_cr_info,
     load_plans,
@@ -16,7 +15,6 @@ app = FastAPI()
 
 @app.get("/api/healthchecker")
 def root():
-
     return {"message": "Welcome to Bank_API!"}
 
 
@@ -28,7 +26,6 @@ async def user_credits_info(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-
     return res
 
 
@@ -36,9 +33,9 @@ async def user_credits_info(user_id: int, db: Session = Depends(get_db)):
 async def download_plans(file: UploadFile = File(None), db: Session = Depends(get_db)):
     if not file.filename.lower().endswith((".xlsx", ".xls")):
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Upload xlsx or xls file"
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Upload xlsx or xls file",
         )
-
     return await load_plans(file, db)
 
 
@@ -52,7 +49,6 @@ async def check_month_plans(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Plans not found"
         )
-
     return plans
 
 
@@ -66,5 +62,4 @@ async def check_year_plans(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Plans not found"
         )
-
     return plans

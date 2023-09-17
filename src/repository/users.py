@@ -74,9 +74,7 @@ async def user_cr_info(user_id: int, db: Session) -> List[User] | None:
             )
             all_info.append(user_info)
     else:
-
         return None
-
     return all_info
 
 
@@ -91,7 +89,6 @@ def add_to_db(df, db) -> str:
         db.add(plan_to_db)
     db.commit()
     db.refresh(plan_to_db)
-
     return "Plans successfully added to DB"
 
 
@@ -123,12 +120,10 @@ async def load_plans(file: UploadFile, db: Session) -> Plan | None:
         if df["sum"][ind] == 0:
             message.append(f"Plan with period: {period} missed Sum ")
         continue
-
     if message:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail=f"{'. '.join(message)}"
         )
-
     return add_to_db(df, db)
 
 
@@ -138,15 +133,13 @@ def sum_category(date_on, category_name, db) -> float:
     mn_credits = db.query(Credit).filter(Credit.issuance_date.in_(date_list)).all()
     mn_payments = db.query(Payment).filter(Payment.payment_date.in_(date_list)).all()
     if category_name == "видача":
-
         return sum([credit.body for credit in mn_credits])
     if category_name == "збір":
-
         return sum([payment.sum for payment in mn_payments])
+    return None
 
 
 def percent(numerator, denominator) -> float:
-
     return numerator * 100 / (denominator + 0.0001)
 
 
@@ -168,7 +161,6 @@ async def check_mn_plans(date_on: date, db: Session) -> List[Plan] | None:
             perc_plan_impl=percent(sum_by_category, plan.sum),  #% виконання плану
         )
         plans_list.append(category_plan)
-
     return plans_list
 
 
@@ -176,11 +168,9 @@ async def check_yr_plans(year_on: str, db: Session) -> List[Plan] | None:
     all_yr_credits = db.query(Credit).filter(
         extract("year", Credit.issuance_date) == year_on
     )
-
     all_yr_payments = db.query(Payment).filter(
         extract("year", Payment.payment_date) == year_on
     )
-
     all_yr_plans = db.query(Plan).filter(extract("year", Plan.period) == year_on)
 
     sum_credits_year = sum([credit.body for credit in all_yr_credits])
@@ -188,7 +178,6 @@ async def check_yr_plans(year_on: str, db: Session) -> List[Plan] | None:
 
     plans_list = []
     for mnth in range(1, 12):
-
         mn_plans_credits = all_yr_plans.filter(
             and_(extract("month", Plan.period) == mnth, Plan.category_id == 3)
         ).all()
@@ -229,5 +218,4 @@ async def check_yr_plans(year_on: str, db: Session) -> List[Plan] | None:
             ),  #% суми платежів за місяць від суми платежів за рік
         )
         plans_list.append(year_plan)
-
     return plans_list
