@@ -117,7 +117,7 @@ async def load_plans(file: UploadFile, db: Session) -> Plan | None:
             message.append(
                 f"Plan period: {period} don't starts with first day of month"
             )
-        if df["sum"][ind] == 0:
+        if pd.isna(df["sum"][ind]):
             message.append(f"Plan with period: {period} missed Sum ")
         continue
     if message:
@@ -177,7 +177,7 @@ async def check_yr_plans(year_on: str, db: Session) -> List[Plan] | None:
     sum_payments_year = sum([payment.sum for payment in all_yr_payments])
     
     plans_list = []
-    for mnth in range(1, 12):
+    for mnth in range(1, 13):
         mn_plans_credits = all_yr_plans.filter(
             and_(extract("month", Plan.period) == mnth, Plan.category_id == 3)
         ).all()
