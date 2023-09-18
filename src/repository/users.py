@@ -18,12 +18,12 @@ from src.schemas import (
 async def user_cr_info(user_id: int, db: Session) -> List[User] | None:
     no_credits = (
         db.query(Credit)
-        .filter(and_(Credit.user_id == user_id, Credit.actual_return_date != None))
+        .filter(and_(Credit.user_id == user_id, Credit.actual_return_date.isnot(None)))
         .all()
     )
     is_credits = (
         db.query(Credit)
-        .filter(and_(Credit.user_id == user_id, Credit.actual_return_date == None))
+        .filter(and_(Credit.user_id == user_id, Credit.actual_return_date.is_(None)))
         .all()
     )
 
@@ -44,7 +44,7 @@ async def user_cr_info(user_id: int, db: Session) -> List[User] | None:
                 ),  # Сума платежів за кредитом
             )
             all_info.append(user_info)
-    elif is_credits:
+    if is_credits:
         for credit in is_credits:
             bod_payments = (
                 db.query(Payment)
