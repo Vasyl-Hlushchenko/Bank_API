@@ -154,7 +154,7 @@ async def check_mn_plans(date_on: date, db: Session) -> List[Plan] | None:
         category = db.query(Diction).filter(Diction.id == plan.category_id).first()
         sum_by_category = sum_category(date_on, category.name, db)
         category_plan = MonthResponse(
-            period=plan.period,  # Місяць плану
+            month=plan.period.strftime('%m'),  # Місяць плану
             category=category.name,  # Категорія плану
             sum=plan.sum,  # Сума з плану
             sum_by_category=sum_by_category,  # Сума виданих кредитів або сума платежів
@@ -172,10 +172,10 @@ async def check_yr_plans(year_on: str, db: Session) -> List[Plan] | None:
         extract("year", Payment.payment_date) == year_on
     )
     all_yr_plans = db.query(Plan).filter(extract("year", Plan.period) == year_on)
-
+    
     sum_credits_year = sum([credit.body for credit in all_yr_credits])
     sum_payments_year = sum([payment.sum for payment in all_yr_payments])
-
+    
     plans_list = []
     for mnth in range(1, 12):
         mn_plans_credits = all_yr_plans.filter(

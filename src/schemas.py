@@ -23,7 +23,7 @@ class OpenCreditResponse(BaseModel):
 
 
 class MonthResponse(BaseModel):
-    period: date
+    month: str
     category: str
     sum: int
     sum_by_category: float
